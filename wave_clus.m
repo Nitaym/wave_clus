@@ -1312,3 +1312,22 @@ function fix_all_button_Callback(hobject,event,handles)
     end
     USER_DATA{1} = par;
     set(handles.wave_clus_figure,'userdata',USER_DATA);
+
+
+function reload_button_Callback(hObject, eventdata, handles)
+    % This should call the load_data button function with the same filename. 
+    % load_data has an option to override eventdata with a filename string
+    USER_DATA = get(handles.wave_clus_figure,'userdata');
+    filename = USER_DATA{1}.filename;
+    load_data_button_Callback(hObject, filename , handles);
+
+function load_next_button_Callback(hObject, eventdata, handles)
+    USER_DATA = get(handles.wave_clus_figure,'userdata');
+
+    % Example filename: CSC73.mat
+    filename = USER_DATA{1}.filename;
+
+    % Add 1 to the number in the filename
+    filename = regexprep(filename, '(\d+)', num2str(str2double(regexprep(filename, '\D', '')) + 1));
+    
+    load_data_button_Callback(hObject, filename , handles);
