@@ -332,13 +332,27 @@ for i = 0:nclusters
                 plot(clus_ax,1:ls,avup,1:ls,avdw,'color',[.65 .65 .65],'linewidth',.5)
             end
             
-            eval(['aux=num2str(length(class' num2str(i) '));']);
+     
+            % Get the number of spikes in the cluster
+            class_spikes = eval(['class' num2str(nclusters)]);
+            aux_num = length(class_spikes);
+
+            SNR = cluster_SNR(spikes, class_spikes);
+            total_time = par.file_metadata(3);
+            title( ...
+                clus_ax, ...
+                sprintf('Cluster %d:  # %d (%.1f%%)\n%.2fHz  SNR=%.1f', ...
+                    i-1, ...
+                    aux_num, ...
+                    aux_num ./ size(spikes, 1) .* 100, ...
+                    aux_num ./ total_time, ...
+                    SNR), ...
+                'Fontweight','bold');
+
             if i>0 
                 ylim(clus_ax,'auto');
                 ylimit = [ylimit; ylim(clus_ax)];
-                title(clus_ax,['Cluster ' num2str(i) ':  # ' aux ' (' num2str(nnz(clustering_results(:,2)==i & ~forced(:))) ')'],'Fontweight','bold');
             else            
-                title(clus_ax,['Cluster ' num2str(i) ':  # ' aux],'Fontweight','bold');
                 xlim(clus_ax, [1 ls])
             end
             

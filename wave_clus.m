@@ -219,9 +219,17 @@ else
         for n = 1:data_handler.max_segments
             x = data_handler.get_segment();
             [new_spikes, temp_aux_th, new_index]  = amp_detect(x, handles.par);
+            % save input parameters and outputs to a mat file
+            % save("amp_detect_results_current_code.mat", "x", "handles", "new_spikes", "temp_aux_th", "new_index");
+            % exit
+
+            
             index = [index data_handler.index2ts(new_index)]; %new_index to ms
             spikes = [spikes; new_spikes];
         end
+
+        [time0, timeend, sr, timetotal] = csc_read_main_time_stamps(filename);
+        handles.par.file_metadata = [time0, timeend, sr, timetotal];
         handles.par.detection_date =  datestr(now);
     end
 
@@ -1317,6 +1325,7 @@ function fix_all_button_Callback(hobject,event,handles)
 function reload_button_Callback(hObject, eventdata, handles)
     % This should call the load_data button function with the same filename. 
     % load_data has an option to override eventdata with a filename string
+    disp("Reloading");
     USER_DATA = get(handles.wave_clus_figure,'userdata');
     filename = USER_DATA{1}.filename;
     load_data_button_Callback(hObject, filename , handles);
