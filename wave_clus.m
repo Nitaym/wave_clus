@@ -1327,6 +1327,9 @@ function reload_button_Callback(hObject, eventdata, handles)
     % load_data has an option to override eventdata with a filename string
     disp("Reloading");
     USER_DATA = get(handles.wave_clus_figure,'userdata');
+    if length(USER_DATA) == 0
+        error('No file loaded');
+    end
     filename = USER_DATA{1}.filename;
     load_data_button_Callback(hObject, filename , handles);
 
