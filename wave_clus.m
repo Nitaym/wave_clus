@@ -197,6 +197,9 @@ handles.par.spikes_file = data_handler.spikes_file;
 handles.par = data_handler.update_par(handles.par);
 check_WC_params(handles.par)
 
+[time0, timeend, sr, timetotal] = csc_read_main_time_stamps(filename);
+handles.par.file_metadata = [time0, timeend, sr, timetotal];
+
 if data_handler.with_results %data have _times files
     [clu, tree, spikes, index, inspk, ipermut, classes, forced,temp] = data_handler.load_results();
     rejected = data_handler.load_rejected();
@@ -222,14 +225,11 @@ else
             % save input parameters and outputs to a mat file
             % save("amp_detect_results_current_code.mat", "x", "handles", "new_spikes", "temp_aux_th", "new_index");
             % exit
-
-            
+           
             index = [index data_handler.index2ts(new_index)]; %new_index to ms
             spikes = [spikes; new_spikes];
         end
 
-        [time0, timeend, sr, timetotal] = csc_read_main_time_stamps(filename);
-        handles.par.file_metadata = [time0, timeend, sr, timetotal];
         handles.par.detection_date =  datestr(now);
     end
 

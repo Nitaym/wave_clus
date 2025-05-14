@@ -334,11 +334,11 @@ for i = 0:nclusters
             
      
             % Get the number of spikes in the cluster
-            class_spikes = eval(['class' num2str(nclusters)]);
+            class_spikes = eval(['class' num2str(i)]);
             aux_num = length(class_spikes);
 
             SNR = cluster_SNR(spikes, class_spikes);
-            total_time = par.file_metadata(3);
+            total_time = par.file_metadata(4);
             title( ...
                 clus_ax, ...
                 sprintf('Cluster %d:  # %d (%.1f%%)\n%.2fHz  SNR=%.1f', ...

@@ -1,4 +1,4 @@
-function [time0, timeend, sr, timetotal] = read_main_time_stamps(filename)
+function [time0, timeend, sr, timetotal] = csc_read_main_time_stamps(filename)
 % read_main_time_stamps    Read the first, second and last time stamps, and
 %                          compute the sampling rate and total length of
 %                          recording time.
