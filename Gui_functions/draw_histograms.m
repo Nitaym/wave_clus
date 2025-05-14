@@ -16,14 +16,18 @@ for i = c2plot
     else
         times = diff(spk_times(classes==i));
     end
-    % Calculates # ISIs < 3ms  
-    multi_isi = nnz(times < 3); 
+
+    multi_unit_threshold = 3; % ms
+    % Calculates # ISIs < threshold
+    multi_isi = nnz(times < multi_unit_threshold); 
+    total_spikes = length(times);
     % Builds and plots the histogram
     isi_ax = eval(['handles.isi' num2str(i)]);
     xlim(isi_ax,'manual');
     eval(['[N,X]=hist(times,0:par.bin_step' num2str(i) ':par.nbins' num2str(i) ');']);
     bar(isi_ax,X(1:end-1),N(1:end-1))
     eval(['xlim(isi_ax,[0 par.nbins' num2str(i) ']);']);
-    title(isi_ax,[num2str(multi_isi) ' in < 3ms'])
+    title(isi_ax, sprintf('%d (%.2f%%) in < %dms', ...
+        multi_isi, 100 * multi_isi / total_spikes, multi_unit_threshold));
     xlabel(isi_ax,'ISI (ms)');
 end
