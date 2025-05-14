@@ -21,12 +21,12 @@ stdmin = par.stdmin;
 stdmax = par.stdmax;
 
 if par.sort_order > 0
-    xf = filt_signal(x,par.sort_order,par.sort_fmin,par.sort_fmax,par.sr);
+    xf = filt_signal(x, par.sort_order, par.sort_fmin, par.sort_fmax, par.sr);
 else
     xf = x;
 end
 if par.detect_order > 0
-    xf_detect = filt_signal(x,par.detect_order,par.detect_fmin,par.detect_fmax,par.sr);
+    xf_detect = filt_signal(x, par.detect_order, par.detect_fmin, par.detect_fmax, par.sr);
 else
     xf_detect = x;
 end
