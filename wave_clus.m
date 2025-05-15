@@ -427,6 +427,14 @@ if isfield(handles,'edit_max_force_dist')
     set(handles.edit_max_force_dist,'string',num2str(handles.par.template_sdnum));
 end
 
+if (exist('electrode_montage.m', 'file'))
+    % display brain region
+    [~, stem, ~] = fileparts(filename)
+    channel = stem(4:end)
+    set(handles.brain_region, 'String', ['Brain Region: ', find_brain_region(channel, false)]);
+else
+    set(handles.brain_region, 'String', 'Brain Region: Unknown');
+end
 
 set(handles.file_name,'string',handles.par.file_name_to_show);
 
