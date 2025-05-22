@@ -1341,6 +1341,17 @@ function reload_button_Callback(hObject, eventdata, handles)
     filename = USER_DATA{1}.filename;
     load_data_button_Callback(hObject, filename , handles);
 
+    clu_data = USER_DATA{6};
+    min_cluster = min(clu_data);
+    max_cluster = max(clu_data);
+    % Initialize a table to save data
+    data_line = zeros(1, 16);
+    data_line(1) = max_cluster;
+    for cluster_number = min_cluster : max_cluster
+        data_line(cluster_number + 2) = nnz(clu_data == cluster_number);
+    end
+    dlmwrite('results.csv', data_line, 'delimiter', ',', '-append');
+
 function load_next_button_Callback(hObject, eventdata, handles)
     USER_DATA = get(handles.wave_clus_figure,'userdata');
 
