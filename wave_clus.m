@@ -429,8 +429,8 @@ end
 
 if (exist('electrode_montage.m', 'file'))
     % display brain region
-    [~, stem, ~] = fileparts(filename)
-    channel = stem(4:end)
+    [~, stem, ~] = fileparts(filename);
+    channel = stem(4:end);
     set(handles.brain_region, 'String', ['Brain Region: ', find_brain_region(channel, false)]);
 else
     set(handles.brain_region, 'String', 'Brain Region: Unknown');
