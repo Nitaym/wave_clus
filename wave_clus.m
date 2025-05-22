@@ -1351,3 +1351,6 @@ function load_next_button_Callback(hObject, eventdata, handles)
     filename = regexprep(filename, '(\d+)', num2str(str2double(regexprep(filename, '\D', '')) + 1));
     
     load_data_button_Callback(hObject, filename , handles);
+
+function always_checkbox_Callback(hObject, eventdata, handles)
+    plot_spikes(handles);
