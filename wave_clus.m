@@ -201,7 +201,8 @@ check_WC_params(handles.par)
 handles.par.file_metadata = [time0, timeend, sr, timetotal];
 
 if data_handler.with_results %data have _times files
-    [clu, tree, spikes, index, inspk, ipermut, classes, forced,temp] = data_handler.load_results();
+    [clu, tree, spikes, index, inspk, ipermut, classes, forced,temp, comments] = data_handler.load_results();
+    set_edit_comments(comments);
     rejected = data_handler.load_rejected();
     handles.setclus = 1;
     if isempty(ipermut)
@@ -569,7 +570,8 @@ for i = 1:length(classes_names)
 end
 forced = USER_DATA{13};
 
-var_list = 'cluster_class'',''par'',''gui_status'', ''forced'', ''Temp''';
+comments = get_edit_comments(max(classes));
+var_list = 'cluster_class'',''par'',''gui_status'', ''forced'', ''Temp'', ''comments''';
 
 if ~isempty(USER_DATA{7})
     inspk = USER_DATA{7};

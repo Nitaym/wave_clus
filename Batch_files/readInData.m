@@ -176,7 +176,7 @@ classdef readInData < handle
         end
         
         
-        function [clu, tree, spikes, index, inspk, ipermut, classes, forced, Temp] = load_results(obj)
+        function [clu, tree, spikes, index, inspk, ipermut, classes, forced, Temp, comments] = load_results(obj)
         	
             if ~ obj.with_results
             	ME = MException('MyComponent:noClusFound', 'This file don''t have a associated ''times_%s.mat'' file',obj.nick_name);
@@ -191,6 +191,13 @@ classdef readInData < handle
             end
             if ~exist('spikes','var')
                 load(obj.spikes_file,'spikes')
+            end
+            if ~exist('comments','var')
+                class_count = length(unique(cluster_class(:, 1)));
+            	comments = cell(class_count+1, 1);
+                for i = 0:class_count
+                    comments{i+1} = '';
+                end
             end
             
             % cluster_class(:,1);
