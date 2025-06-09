@@ -340,9 +340,9 @@ function plot_spikes(handles)
         end
     end
 
-    for graph_index = 1:nclusters
+    for graph_index = 0:nclusters
         % Run the loop again to plot other clusters that have their "always" checkbox checked
-        for data_index = 1:nclusters
+        for data_index = 0:nclusters
             if ~isempty(cluster_lines{data_index+1}) && graph_index ~= data_index && data_index < 4 && graph_index < 4
                 checkbox_name = ['handles.always' num2str(data_index) '_checkbox'];
                 if get(eval(checkbox_name),'value') == 1
@@ -470,7 +470,7 @@ function plot_data(clus_ax, lines_x, lines_y, av, avup, avdown, color, i, ls, ha
             line(1:ls,avup,'color',[.4 .4 .4],'linewidth',0.5,'Parent',clus_ax)
         end
     else
-        plot(clus_ax,1:ls,av,'color',colors(mod(i-1,maxc)+1,:)*(i~=0),'linewidth',2)
+        plot(clus_ax,1:ls,av,'color',color,'linewidth',2)
         plot(clus_ax,1:ls,avup,1:ls,avdown,'color',[.65 .65 .65],'linewidth',.5)
     end
 end
