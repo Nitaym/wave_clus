@@ -1020,6 +1020,7 @@ delete(allchild(eval(['handles.spikes' int2str(cn)])))
 
 eval(['cla(handles.isi' int2str(cn) ',''reset'');']);
 eval(['set(handles.isi' int2str(cn) '_accept_button,''value'',1);']);
+plot_spikes(handles);
 
 
 % --- Executes on button press in undo_button.
