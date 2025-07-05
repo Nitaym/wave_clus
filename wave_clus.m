@@ -988,12 +988,6 @@ eval(['set(handles.isi' int2str(cn) '_accept_button,''value'',0);'])
 main_fig = findobj( 0, 'type', 'figure', 'tag', 'wave_clus_figure');
 USER_DATA = get(main_fig,'userdata');
 classes = USER_DATA{6};
-if cn == 3
-    if nnz(classes==3)==0
-        nlab = imread('filelist_wc.xlj','jpg');
-        figure('color','k'); image(nlab); axis off; set(gcf,'NumberTitle','off');
-    end
-end
 
 if developer_mode
     pumenu_reject = findobj(main_fig,'tag','pumenu_reject');
