@@ -1351,3 +1351,81 @@ function load_next_button_Callback(hObject, eventdata, handles)
 
 function always_checkbox_Callback(hObject, eventdata, handles)
     plot_spikes(handles);
+
+function recluster_cluster_Callback(hObject, eventdata, handles, cluster_index)
+    USER_DATA = get(handles.wave_clus_figure,'userdata');
+    params = USER_DATA{1};
+    spikes = USER_DATA{2};
+    cluster_class = zeros(size(spikes,1),2);
+    cluster_class(:, 1) = USER_DATA{6};
+    cluster_class(:, 2) = USER_DATA{3}';
+    target_filename = params.filename;
+
+    times_filename = sprintf('times_%s.mat', params.nick_name);
+    % Ask for confirmation first, as you must save clusters before reclustering
+    if ~exist(times_filename, 'file')
+        % Offer to save clusters first
+        choice = questdlg('Recluster requires saving the clusters. Do you want to save clusters now?', ...
+                          'Save Clusters', ...
+                          'Yes', 'Cancel', 'Yes');
+        if strcmp(choice, 'Yes')
+            % Call the save_clusters function to save the clusters
+            save_clusters_button_Callback(hObject, 0, handles, 0);
+        else
+            % Abort the reclustering
+            return;
+        end
+    end
+
+    % inspk = USER_DATA{7};
+    % temp = USER_DATA{8};
+    % ls = size(spikes,2);
+    % minclus = handles.minclus;
+    % clustering_results = USER_DATA{10};
+
+    %% Get the spikes for the specified cluster
+    inds = find(cluster_class(:, 1) == cluster_index);
+    if (isempty(inds))
+        error('Channel %d, Cluster %d: No spikes found.', ch, cl);
+    end
+
+    spikes = spikes(inds, :);            % spike waveform.
+    index  = cluster_class(inds, 2);     % spike times.
+    inspk_aux = USER_DATA{7}(inds, :);   % spike features.
+
+    target_filename = sprintf('.%sCSC_spikes_recluster_temp.mat', filesep);
+    save(target_filename, 'index', 'spikes');
+
+    % % Verify that the file is accessible
+    % fid = fopen(target_filename, 'w');
+    % if (fid == -1)
+    %     error('Cannot open %s for write.', target_filename);
+    % end
+    % fclose(fid);
+
+    %% Run clustering on this file specifically
+    % Interaction with SPC
+    set(handles.file_name, 'string', sprintf('Reclustering %d ...', cluster_index)); drawnow;
+    fname_in = handles.par.fname_in;
+    % Input file for SPC
+    save(fname_in, 'inspk_aux', '-ascii');
+
+    [clu, tree] = run_cluster(params);
+    forced = false(size(spikes,1) ,1);
+    rejected = false(1, size(spikes,1));
+    handles.setclus = 2; %uses min cluster size but doesn't reset force
+
+    % Selects temperature.
+    [clust_num temp auto_sort] = find_temp(tree,clu, handles.par);
+    current_temp = max(temp);
+    classes = zeros(1,size(clu,2)-2);
+    for c =1: length(clust_num)
+        aux = clu(temp(c),3:end) +1 == clust_num(c);
+        classes(aux) = c;
+    end
+
+    % % Merge times into the original file
+
+    % % Refresh the UI to show results
+
+    disp("Done");
