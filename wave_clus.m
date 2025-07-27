@@ -31,8 +31,8 @@ function varargout = wave_clus(varargin)
 % USER_DATA{3} = index;
 % USER_DATA{4} = clu;
 % USER_DATA{5} = tree;
-% USER_DATA{7} = inspk;
 % USER_DATA{6} = classes(:)'
+% USER_DATA{7} = inspk;
 % USER_DATA{8} = temp
 % USER_DATA{9} = classes(:)', backup for non-forced classes
 % USER_DATA{10} = clustering_results
@@ -275,6 +275,28 @@ function load_data_button_Callback(hObject, eventdata, handles)
         forced = false(size(spikes,1) ,1);
         rejected = false(1, size(spikes,1));
         handles.setclus = 2; %uses min cluster size but doesn't reset force
+
+        %Fixing lost elements of clu . Skiped elements will be  class -1 because in
+        %all the uses of clu are like: clu(temp,3:end)+1
+        if handles.par.permut == 'y' && ~isempty(clu)
+            if isempty(ipermut) %load from old result without ipermut or par, but par.permut=='y'
+            naux =  size(clu,2)-2;
+            ipermut = 1:naux;
+            end
+            clu_aux = zeros(size(clu,1),2 + size(spikes,1)) -1; %when update classes from clu, not selected elements go to cluster 0
+            clu_aux(:,ipermut+2) = clu(:,(1:length(ipermut))+2);
+            clu_aux(:,1:2) = clu(:,1:2);
+            clu = clu_aux;
+            clear clu_aux
+        elseif ~isempty(clu)
+            naux = size(clu,2)-2;
+            clu_aux = zeros(size(clu,1),2 + size(spikes,1)) -1; %when update classes from clu, not selected elements go to cluster 0
+            clu_aux(:,(1:naux)+2) = clu(:,(1:naux)+2);
+            clu_aux(:,1:2) = clu(:,1:2);
+            clu = clu_aux;
+            clear clu_aux
+        end
+
     end
 
     handles.par.file_name_to_show = [pathname filename];
@@ -285,26 +307,6 @@ function load_data_button_Callback(hObject, eventdata, handles)
         clear xd_sub
     end
 
-    %Fixing lost elements of clu . Skiped elements will be  class -1 because in
-    %all the uses of clu are like: clu(temp,3:end)+1
-    if handles.par.permut == 'y' && ~isempty(clu)
-        if isempty(ipermut) %load from old result without ipermut or par, but par.permut=='y'
-        naux =  size(clu,2)-2;
-        ipermut = 1:naux;
-        end
-        clu_aux = zeros(size(clu,1),2 + size(spikes,1)) -1; %when update classes from clu, not selected elements go to cluster 0
-        clu_aux(:,ipermut+2) = clu(:,(1:length(ipermut))+2);
-        clu_aux(:,1:2) = clu(:,1:2);
-        clu = clu_aux;
-        clear clu_aux
-    elseif ~isempty(clu)
-        naux = size(clu,2)-2;
-        clu_aux = zeros(size(clu,1),2 + size(spikes,1)) -1; %when update classes from clu, not selected elements go to cluster 0
-        clu_aux(:,(1:naux)+2) = clu(:,(1:naux)+2);
-        clu_aux(:,1:2) = clu(:,1:2);
-        clu = clu_aux;
-        clear clu_aux
-    end
     USER_DATA = get(handles.wave_clus_figure,'userdata');
     USER_DATA{1} = handles.par;
     USER_DATA{2} = spikes;
@@ -370,11 +372,11 @@ function load_data_button_Callback(hObject, eventdata, handles)
         % Classes should be consecutive numbers
         classes_names = nonzeros(sort(unique(classes)));
         for i= 1:length(classes_names)
-        c = classes_names(i);
-        if c~= i
-            classes(classes == c) = i;
-        end
-        Temp(i) = temp(i);
+            c = classes_names(i);
+            if c~= i
+                classes(classes == c) = i;
+            end 
+            Temp(i) = temp(i);
         end
         setappdata(handles.temperature_plot,'auto_sort_info',auto_sort);
         % definition of clustering_results
@@ -383,8 +385,8 @@ function load_data_button_Callback(hObject, eventdata, handles)
         clustering_results(:,2) = classes'; % GUI classes
 
         for i=1:max(classes)
-        clustering_results(classes==i,3) = temp(i);
-        clustering_results(classes==i,4) = clust_num(i); % original classes
+            clustering_results(classes==i,3) = temp(i);
+            clustering_results(classes==i,4) = clust_num(i); % original classes
         end
 
 
@@ -1402,28 +1404,6 @@ function recluster_cluster_Callback(hObject, eventdata, handles, cluster_index)
     cluster_class(:, 2) = USER_DATA{3}';
     target_filename = params.filename;
 
-    times_filename = sprintf('times_%s.mat', params.nick_name);
-    % Ask for confirmation first, as you must save clusters before reclustering
-    if ~exist(times_filename, 'file')
-        % Offer to save clusters first
-        choice = questdlg('Recluster requires saving the clusters. Do you want to save clusters now?', ...
-                          'Save Clusters', ...
-                          'Yes', 'Cancel', 'Yes');
-        if strcmp(choice, 'Yes')
-            % Call the save_clusters function to save the clusters
-            save_clusters_button_Callback(hObject, 0, handles, 0);
-        else
-            % Abort the reclustering
-            return;
-        end
-    end
-
-    % inspk = USER_DATA{7};
-    % temp = USER_DATA{8};
-    % ls = size(spikes,2);
-    % minclus = handles.minclus;
-    % clustering_results = USER_DATA{10};
-
     %% Get the spikes for the specified cluster
     inds = find(cluster_class(:, 1) == cluster_index);
     if (isempty(inds))
@@ -1433,6 +1413,8 @@ function recluster_cluster_Callback(hObject, eventdata, handles, cluster_index)
     spikes = spikes(inds, :);            % spike waveform.
     index  = cluster_class(inds, 2);     % spike times.
     inspk_aux = USER_DATA{7}(inds, :);   % spike features.
+    params.inputs = size(inspk_aux, 2);  % number of inputs to the clustering
+
 
     target_filename = sprintf('.%sCSC_spikes_recluster_temp.mat', filesep);
     save(target_filename, 'index', 'spikes');
@@ -1457,17 +1439,91 @@ function recluster_cluster_Callback(hObject, eventdata, handles, cluster_index)
     handles.setclus = 2; %uses min cluster size but doesn't reset force
 
     % Selects temperature.
-    [clust_num temp auto_sort] = find_temp(tree,clu, handles.par);
-    current_temp = max(temp);
-    classes = zeros(1,size(clu,2)-2);
+    [clust_num new_temp auto_sort] = find_temp(tree,clu, handles.par);
+    current_temp = max(new_temp);
+    new_classes = zeros(1,size(clu,2)-2);
     for c =1: length(clust_num)
-        aux = clu(temp(c),3:end) +1 == clust_num(c);
-        classes(aux) = c;
+        aux = clu(new_temp(c),3:end) +1 == clust_num(c);
+        new_classes(aux) = c;
     end
 
-    % % Merge times into the original file
+    %% Merge classes into the original classes information
+    % First mark the new classes as 100+ to avoid conflicts with original classes
+    modified_original_classes = USER_DATA{6};
+    delimiter_size = 100;
+    modified_original_classes(inds) = new_classes + delimiter_size;
+    % Mark all the new cluster 0 as 0
+    modified_original_classes(find(modified_original_classes == delimiter_size)) = 0;
 
-    % % Refresh the UI to show results
+    if handles.par.permut == 'n'
+        modified_original_classes = [modified_original_classes zeros(1,max(size(spikes,1)-size(clu,2)-2,0))];
+    end
 
-    disp("Done");
+    % Now reindex the classes into consecutive numbers
+    classes_names = nonzeros(sort(unique(modified_original_classes)));
+    Temp = [];
+    old_temp = USER_DATA{8} * ones(1, length(classes_names));
+    new_temp = new_temp(1) * ones(1, length(classes_names));
+    for i= 1:length(classes_names)
+        c = classes_names(i);
+        if c ~= i
+            modified_original_classes(modified_original_classes == c) = i;
+        end
+        if c >= delimiter_size
+            Temp(i) = new_temp(i);
+        else
+            Temp(i) = old_temp(i);
+        end
+    end
+
+    setappdata(handles.temperature_plot,'auto_sort_info',auto_sort);
+    % definition of clustering_results
+    clustering_results = [];
+    clustering_results(:,1) = repmat(current_temp,length(modified_original_classes),1); % GUI temperatures
+    clustering_results(:,2) = modified_original_classes'; % GUI classes
+
+    for i=1:max(modified_original_classes)
+      clustering_results(modified_original_classes==i,3) = Temp(i);
+    %   clustering_results(modified_original_classes==i,4) = clust_num(i); % original classes
+    end
+
+    handles.undo = 0;
+
+    % Refresh the UI to show results
+    % COPIED FROM load_data_button_Callback, unfortunately. It should be refactored.
+    clustering_results(:,5) = repmat(handles.par.min_clus, length(modified_original_classes), 1); % minimum number of clusters
+    USER_DATA{6} = modified_original_classes(:)';
+    % We flatten the temprature - It doesn't matter anymore
+    USER_DATA{8} = Temp(1);
+    USER_DATA{10} = clustering_results;
+    USER_DATA{11} = clustering_results;
+    handles.force = 0;
+    handles.merge = 0;
+
+    handles.minclus = handles.par.min_clus;
+
+    set(handles.wave_clus_figure,'userdata',USER_DATA);
+
+    clearvars clustering_results classes rejected spikes
+    % mark clusters when new data is loaded
+    guidata(handles.load_data_button, handles); %this is need for plot the isi histograms
+
+    plot_spikes(handles); %This function edits userdata
+    USER_DATA = get(handles.wave_clus_figure,'userdata');
+    set(handles.wave_clus_figure,'userdata',USER_DATA);
+
+
+    if isfield(handles,'force_unforce_button') && (nnz(forced)>0)
+        set(handles.force_unforce_button,'Value',1)
+        set(handles.force_unforce_button,'String','FORCED')
+        %set(handles.change_temperature_button,'enable','off');
+    elseif isfield(handles,'force_unforce_button')
+        set(handles.force_unforce_button,'Value',0)
+        set(handles.force_unforce_button,'String','Force')
+    end
+    if isfield(handles,'edit_max_force_dist')
+        set(handles.edit_max_force_dist,'string',num2str(handles.par.template_sdnum));
+    end
+
+    % disp("Reclustering completed");
 end
