@@ -45,23 +45,24 @@ function varargout = wave_clus(varargin)
 % USER_DATA{17} - USER_DATA{19}, for future changes
 % USER_DATA{20} - USER_DATA{42}, fix clusters
 
-% Begin initialization code - DO NOT EDIT
-gui_Singleton = 1;
-gui_State = struct('gui_Name',       mfilename, ...
-                   'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @wave_clus_OpeningFcn, ...
-                   'gui_OutputFcn',  @wave_clus_OutputFcn, ...
-                   'gui_LayoutFcn',  [], ...
-                   'gui_Callback',   []);
-if nargin>1 && ischar(varargin{1})
-    gui_State.gui_Callback = str2func(varargin{1});
-end
+    % Begin initialization code - DO NOT EDIT
+    gui_Singleton = 1;
+    gui_State = struct('gui_Name',       mfilename, ...
+                    'gui_Singleton',  gui_Singleton, ...
+                    'gui_OpeningFcn', @wave_clus_OpeningFcn, ...
+                    'gui_OutputFcn',  @wave_clus_OutputFcn, ...
+                    'gui_LayoutFcn',  [], ...
+                    'gui_Callback',   []);
+    if nargin>1 && ischar(varargin{1})
+        gui_State.gui_Callback = str2func(varargin{1});
+    end
 
-if nargout
-    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
-else
-    gui_mainfcn(gui_State, varargin{:});
-end
+    if nargout
+        [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+    else
+        gui_mainfcn(gui_State, varargin{:});
+    end
+    set(gcf,'WindowKeyPressFcn',{@KeyPressd, 0});
 end
 
 % End initialization code - DO NOT EDIT
@@ -1526,4 +1527,16 @@ function recluster_cluster_Callback(hObject, eventdata, handles, cluster_index)
     end
 
     % disp("Reclustering completed");
+end
+
+
+function KeyPressd(src, event, S0)
+    switch event.Key
+        case 'r'
+            disp('R pressed: Reloading data');
+            reload_button_Callback(gcbo,[],guidata(gcbo));
+        case 'n'
+            disp('N pressed: Loading next data');
+            load_next_button_Callback(gcbo,[],guidata(gcbo))
+    end
 end
