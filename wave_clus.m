@@ -767,6 +767,8 @@ function manual_clus_button_Callback(hObject, eventdata,handles_local, cl)
             eval(['current_ax = handles_local.spikes' num2str(cl) ';']);
             valids = ~USER_DATA{15}(:) & (classes(:)==cl); %First, I don't select the rejected
         end
+
+        % Have the user draw a rect
         if exist('getrect','file')
             rect = getrect(current_ax);
         else
@@ -775,90 +777,81 @@ function manual_clus_button_Callback(hObject, eventdata,handles_local, cl)
             aux_rec.delete()
         end
 
-        if rect(1) > size(spikes,2) || (rect(1) + rect(3))<1 %if the rect is totally outside the axis
-            set(hObject,'Enable','on');
-            set(hObject,'value',0);
-            return;
-        end
+        % Align the rect to the plot. 
+        rect_xmin = rect(1);
+        rect_ymin = rect(2);
+        rect_xmax = rect(3) + rect_xmin;
+        rect_ymax = rect(4) + rect_ymin;
+
+        xborders = [1, size(spikes, 2)];
         yborders = ylim(current_ax);
-        if rect(2)<yborders(1)
-            ymin = -inf;
-        else
-            ymin = rect(2);
-        end
-        if rect(2) + rect(4)>yborders(2)
-            ymax = inf;
-        else
-            ymax = rect(2) + rect(4);
-        end
-        xind = max(1, ceil(rect(1)));
-        xend = min(size(spikes,2),floor(rect(1) + rect(3)));
-        if(rect(3)<2)
-            if rect(3)==0
-                set(hObject,'Enable','on');
-                set(hObject,'value',0);
-                return;
-            end
-            sp_selected = (max(spikes(valids,xind:xend),[],2)>ymin) &  (min(spikes(valids,xind:xend),[],2)<ymax);
-            valids(valids==1) = sp_selected;
-        else
-            xD = xend-xind;
-            yD = ymin - ymax;
-            if xD==0 || yD == 0
-                set(hObject,'Enable','on');
-                set(hObject,'value',0);
-                return;
-            end
-            [Mh, Mpos] = max(spikes(valids,xind:xend)');
-            [mh ,mpos] = min(spikes(valids,xind:xend)');
-            if ceil(rect(1)) < 1 %if rect is out the axis, extreme in border count like inside the rectangle
-                xiborder=0;
-            else
-                xiborder=1;
-            end
-            if floor(rect(1) + rect(3)) > size(spikes,2) %if rect is out the axis, extreme in border count like inside the rectangle
-                xeborder = xD+2;
-            else
-                xeborder = xD;
-            end
-            sp_selected = (Mh >= ymin & Mh <= ymax) & (Mpos > xiborder & Mpos < xeborder);
-            sp_selected = sp_selected |((mh >= ymin & mh <= ymax) & (mpos > xiborder & mpos < xeborder));
-            valids(valids==1) = sp_selected;
-        end
-        if nnz(valids)==0
+
+        rect_xmin = floor(max(xborders(1), rect_xmin)); % X is discrete
+        rect_xmax = ceil(min(rect_xmax, xborders(2)));
+        rect_ymin = max(yborders(1), rect_ymin);
+        rect_ymax = min(rect_ymax, yborders(2));
+        rect_height = rect_ymax - rect_ymin;
+        rect_width = rect_xmax - rect_xmin;
+        if rect_width < 1 || rect_height < 1
+            % Rect is out of bounds
+
+            % Re-enable the button and return
             set(hObject,'Enable','on');
             set(hObject,'value',0);
+            disp("Manual selection out of bounds of plot");
             return;
         end
 
+        fprintf("Selecting spikes with X between %d and %d " + ...
+            "and Y between %0.1f and %0.1f\n", ...
+            rect_xmin, rect_xmax, rect_ymin, rect_ymax);
 
-        clus_n = max(classes) + 1;
-        USER_DATA{14} = forced;
+        % Now select the spikes
+        cluster_spikes = spikes(valids, :);
+        spikes_selected = (cluster_spikes(:, rect_xmin : rect_xmax) >= rect_ymin) & (cluster_spikes(:, rect_xmin : rect_xmax) <= rect_ymax);
+        if nnz(spikes_selected) > 0
+            % Verify that some spikes are selected
 
-        forced(valids) = 0;
-        classes(valids)= clus_n;
-        handles.new_manual = valids;
-        handles.setclus = 1;
-        handles.force = 0;
-        handles.merge = 0;
+            % spikes_selected now has ones where the spikes between xmin : xmax are within the filters. 
+            % Let's change the cluster number only for the spikes that have ones
+            selected_spikes_indices = find(any(spikes_selected, 2));
 
-        handles.undo = 0;
-        USER_DATA{6} = classes(:)';
-        USER_DATA{13} = forced;
-        USER_DATA{16} = USER_DATA{15}; %update bk of rejected spikes
+            new_cluster_index = max(classes) + 1;
+            USER_DATA{14} = forced;
 
-        if isfield(handles,'wave_clus_figure')
-            set(handles.wave_clus_figure,'userdata',USER_DATA)
-            set(hObject,'Enable','on');
-        else
-            set(h_fig,'userdata',USER_DATA)
+            % Now we have the "local" index of the seleted spikes - Meaning the index within the cluster
+            % We need the index within the whole file
+            cluster_indices = find(valids);
+            selected_spikes_indices = cluster_indices(selected_spikes_indices);
+
+            forced(selected_spikes_indices) = 0;
+            classes(selected_spikes_indices)= new_cluster_index;
+            selected_spikes_bitmask = false(size(spikes, 1), 1);
+            selected_spikes_bitmask(selected_spikes_indices) = true;
+            handles.new_manual = selected_spikes_bitmask;
+            handles.setclus = 1;
+            handles.force = 0;
+            handles.merge = 0;
+
+            handles.undo = 0;
+            USER_DATA{6} = classes(:)';
+            USER_DATA{13} = forced;
+            USER_DATA{16} = USER_DATA{15}; %update bk of rejected spikes
+
+            if isfield(handles,'wave_clus_figure')
+                set(handles.wave_clus_figure,'userdata',USER_DATA)
+                set(hObject,'Enable','on');
+            else
+                set(h_fig,'userdata',USER_DATA)
+            end
+            set(hObject,'value',0);
+            plot_spikes(handles);       
+        
         end
-        set(hObject,'value',0);
-        plot_spikes(handles);
-
-    catch
-        set(hObject,'Enable','on');
-        set(hObject,'value',0);
+    catch ME
+        % set(hObject,'Enable','on');
+        % set(hObject,'value',0);
+        rethrow(ME);
     end
 end
 
