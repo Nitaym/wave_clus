@@ -1,17 +1,27 @@
 function plot_spikes(handles)
-    set(handles.file_name,'string','Plotting...'); 
-    drawnow;
-    if exist('groot','builtin')
-        if isprop(handles.wave_clus_figure,'GraphicsSmoothing')
-            set(handles.wave_clus_figure,'GraphicsSmoothing','off');
+    % Check if we're on the main figure
+    if isfield(handles, "wave_clus_figure")
+        % We're on the main figure
+        USER_DATA = get(handles.wave_clus_figure,'userdata');
+
+        if exist('groot','builtin')
+            if isprop(handles.wave_clus_figure,'GraphicsSmoothing')
+                set(handles.wave_clus_figure,'GraphicsSmoothing','off');
+            end
         end
         try
             set(groot,'defaultfiguregraphicssmoothing','off');
             set(groot,'DefaultAxesFontSize',8)
         end
+        set(handles.file_name,'string','Plotting...'); 
+        drawnow;
+    else
+        h_figs = get(0,'children');
+        h_fig = findobj(h_figs,'tag','wave_clus_figure');
+        USER_DATA = get(h_fig,'UserData');
+        handles = guidata(h_fig);        
     end
 
-    USER_DATA = get(handles.wave_clus_figure,'userdata');
     par = USER_DATA{1};
     spikes = USER_DATA{2};
     classes = USER_DATA{6};
