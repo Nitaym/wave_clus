@@ -46,7 +46,8 @@ end
 xlim(sp_axes, [1 ls]);
 aux = length(class_to_plot);
 nforced = nnz(forced(class_to_plot));
-title(sp_axes, ['Cluster ' num2str(axes_nr-1) ':  # ' num2str(aux) ' (' num2str(aux-nforced) ')' ],'Fontweight','bold');
+
+plot_title(sp_axes, axes_nr-1, spikes, class_to_plot, par);
 
 %Resize axis
 ymin = min(ylimit(:,1));
