@@ -846,11 +846,14 @@ function manual_clus_button_Callback(hObject, eventdata,handles_local, cl)
             end
             set(hObject,'value',0);
             plot_spikes(handles);       
-        
+        else
+            set(hObject,'Enable','on');
+            set(hObject,'value',0);
+            disp("No spikes selected");
         end
     catch ME
-        % set(hObject,'Enable','on');
-        % set(hObject,'value',0);
+        set(hObject,'Enable','on');
+        set(hObject,'value',0);
         rethrow(ME);
     end
 end
