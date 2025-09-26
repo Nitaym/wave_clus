@@ -1,4 +1,5 @@
 % MARK CLUSTERS IN TEMPERATURE DIAGRAM
+% Plot temprature graph
 
 function mark_clusters_temperature_diagram(handles,tree,clustering_results)
 
@@ -14,7 +15,7 @@ for i=1:nclasses
     if class_plot(i) == 0 %null original cluster
 		class_plot(i) =1; %plot like they were from cluster 1
     end
-    temp_plot(i) = clustering_results(ind(1),3);  
+    temp_plot(i) = clustering_results(ind(1),3);
 end
 
 num_temp = floor((handles.par.maxtemp ... 

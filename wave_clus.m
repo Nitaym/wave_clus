@@ -1381,9 +1381,9 @@ function load_next_button_Callback(hObject, eventdata, handles)
     filename = USER_DATA{1}.filename;
 
     % Add 1 to the number in the filename
-    filename = regexprep(filename, '(\d+)', num2str(str2double(regexprep(filename, '\D', '')) + 1));
+    new_filename = regexprep(filename, '(\d+)', num2str(str2double(regexprep(filename, '\D', '')) + 1, "%03d"));
     
-    load_data_button_Callback(hObject, filename , handles);
+    load_data_button_Callback(hObject, new_filename , handles);
 end
 
 
