@@ -441,6 +441,11 @@ function load_data_button_Callback(hObject, eventdata, handles)
         % display brain region
         [~, stem, ~] = fileparts(filename);
         channel = stem(4:end);
+        if contains(channel, '_')
+            % filename has _spikes
+            split_filename = split(channel, '_');
+            channel = split_filename{1};
+        end
         set(handles.brain_region, 'String', ['Brain Region: ', find_brain_region(channel, false)]);
     else
         set(handles.brain_region, 'String', 'Brain Region: Unknown');
