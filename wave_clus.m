@@ -1005,12 +1005,7 @@ function isi_accept_button_Callback(hObject, eventdata, handles)
     eval(['set(handles.isi' cn{1} '_reject_button,''value'',0);']);
 end
 
-function isi_reject_button_Callback(hObject, eventdata, handles,developer_mode)
-    set(hObject,'value',1);
-    b_name = get(gcbo,'Tag');
-    cn = str2double(regexp(b_name, '\d+', 'match'));
-
-    eval(['set(handles.isi' int2str(cn) '_accept_button,''value'',0);'])
+function reject_cluster(cluster_number, handles, developer_mode)
     main_fig = findobj( 0, 'type', 'figure', 'tag', 'wave_clus_figure');
     USER_DATA = get(main_fig,'userdata');
     classes = USER_DATA{6};
@@ -1020,32 +1015,52 @@ function isi_reject_button_Callback(hObject, eventdata, handles,developer_mode)
         if get(pumenu_reject,'Value')==1
             rejected = USER_DATA{15};
             USER_DATA{16} = rejected; %update bk of rejected spikes
-            rejected(classes==cn) = true;
+            rejected(classes==cluster_number) = true;
             USER_DATA{15} = rejected;
-    else
+        else
             USER_DATA{16} = USER_DATA{15};
-    end
+        end
     end
     forced = USER_DATA{13};
     USER_DATA{14} = forced;
-    forced(classes==cn) = 0;
+    forced(classes==cluster_number) = 0;
     USER_DATA{13} = forced;
 
-    classes(classes==cn) = 0;
+    classes(classes==cluster_number) = 0;
     USER_DATA{6} = classes;
 
     clustering_results = USER_DATA{10};
     USER_DATA{11} = clustering_results; % Save backup
 
     set(main_fig,'userdata',USER_DATA);
+end
+
+function isi_reject_button_Callback(hObject, eventdata, handles, developer_mode)
+    set(hObject,'value',1);
+    b_name = get(gcbo,'Tag');
+    cluster_number = str2double(regexp(b_name, '\d+', 'match'));
+    eval(['set(handles.isi' int2str(cluster_number) '_accept_button,''value'',0);'])
+
+    reject_cluster(cluster_number, handles, developer_mode);
 
     set(hObject,'value',0);
-    linkaxes(eval(['handles.spikes' int2str(cn)]),'off');
-    % cla(eval(['handles.spikes' int2str(cn)]),'reset');
-    delete(allchild(eval(['handles.spikes' int2str(cn)])))
 
-    eval(['cla(handles.isi' int2str(cn) ',''reset'');']);
-    eval(['set(handles.isi' int2str(cn) '_accept_button,''value'',1);']);
+    linkaxes(eval(['handles.spikes' int2str(cluster_number)]),'off');
+    % cla(eval(['handles.spikes' int2str(cluster_number)]),'reset');
+    delete(allchild(eval(['handles.spikes' int2str(cluster_number)])))
+
+    eval(['cla(handles.isi' int2str(cluster_number) ',''reset'');']);
+    eval(['set(handles.isi' int2str(cluster_number) '_accept_button,''value'',1);']);   
+    plot_spikes(handles);
+end
+function reject_all_button_Callback(hObject, eventdata, handles)
+    % Find how many cluster are available
+    USER_DATA = get(handles.wave_clus_figure,'userdata');
+    clustering_results = USER_DATA{10};
+    max_cluster = max(clustering_results(:,2));
+    for cluster_number = 1:max_cluster
+        reject_cluster(cluster_number, handles, false);
+    end
     plot_spikes(handles);
 end
 
