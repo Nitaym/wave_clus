@@ -534,7 +534,7 @@ end
 
 
 % --- Executes on button press in save_clusters_button.
-function save_clusters_button_Callback(hObject, eventdata, handles, developer_mode)
+function save_clusters_button_Callback(hObject, eventdata, handles, developer_mode, load_next)
     USER_DATA = get(handles.wave_clus_figure,'userdata');
     classes = USER_DATA{6};
     clustering_results = USER_DATA{10};
@@ -647,6 +647,10 @@ function save_clusters_button_Callback(hObject, eventdata, handles, developer_mo
     end
 
     set(hObject,'value',0);
+
+    if load_next
+        load_next_button_Callback(hObject, eventdata, handles)
+    end
 end
 
 
