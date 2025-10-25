@@ -158,7 +158,13 @@ function load_data_button_Callback(hObject, eventdata, handles)
         return
     end
 
-    set(handles.file_name,'string',['Loading:    ' pathname filename]); drawnow
+    % Check if file exists
+    if ~exist([pathname filename],'file')
+        set(handles.file_name,'string', ['File ' pathname filename ' does not exist.']); drawnow
+        return
+    end
+
+    set(handles.file_name,'string', ['Loading:    ' pathname filename]); drawnow
 
     cla(handles.cont_data);
     clear functions % reset functions, force to reload set_parameters next
@@ -223,7 +229,7 @@ function load_data_button_Callback(hObject, eventdata, handles)
                 [spikes] = spike_alignment(spikes,handles.par);
             end
         else
-            set(handles.file_name,'string','Detecting spikes ...'); drawnow
+            set(handles.file_name,'string', [filename, ': Detecting spikes...']); drawnow
             index = [];
             spikes = [];
             for n = 1:data_handler.max_segments
@@ -241,11 +247,12 @@ function load_data_button_Callback(hObject, eventdata, handles)
         end
 
         if size(spikes,1) < 15
+                set(handles.file_name,'string', [filename, ': Less than 15 spikes detected. Ignoring']); drawnow
                 ME = MException('MyComponent:notEnoughSpikes', 'Less than 15 spikes detected');
                 throw(ME)
         end
 
-        set(handles.file_name,'string','Calculating spike features ...'); drawnow
+        set(handles.file_name,'string',[filename, ': Calculating spike features ...']); drawnow;
         [inspk] = wave_features(spikes,handles.par);                 %Extract spike features.
         handles.par.inputs = size(inspk,2);                       % number of inputs to the clustering
 
@@ -268,7 +275,7 @@ function load_data_button_Callback(hObject, eventdata, handles)
         end
 
         %Interaction with SPC
-        set(handles.file_name,'string','Running SPC ...'); drawnow
+        set(handles.file_name,'string',[filename, ': Running SPC ...']); drawnow
         fname_in = handles.par.fname_in;
         save(fname_in,'inspk_aux','-ascii');                      %Input file for SPC
 

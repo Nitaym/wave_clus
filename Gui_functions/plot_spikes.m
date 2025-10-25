@@ -4,6 +4,7 @@ function plot_spikes(handles)
         % We're on the main figure
         USER_DATA = get(handles.wave_clus_figure,'userdata');
 
+
         if exist('groot','builtin')
             if isprop(handles.wave_clus_figure,'GraphicsSmoothing')
                 set(handles.wave_clus_figure,'GraphicsSmoothing','off');
@@ -13,7 +14,7 @@ function plot_spikes(handles)
             set(groot,'defaultfiguregraphicssmoothing','off');
             set(groot,'DefaultAxesFontSize',8)
         end
-        set(handles.file_name,'string','Plotting...'); 
+        set(handles.file_name,'string',[USER_DATA{1}.filename, ': Plotting...']); 
         drawnow;
     else
         h_figs = get(0,'children');
