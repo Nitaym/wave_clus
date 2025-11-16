@@ -1418,6 +1418,82 @@ function load_next_button_Callback(hObject, eventdata, handles)
 end
 
 
+function result = is_file_processed(filename)
+    % Check if the file has already been processed by looking for the output file
+    % File is considered processed if there are the following files:
+    % CSC_###.mat
+    % CSC_###_spikes.mat
+    % times_CSC###.mat
+    % data_CSC###.dg_01
+    % data_CSC###.dg_01.lab
+
+    [pathstr, name, ext] = fileparts(filename);
+    processed_file_1 = fullfile(pathstr, [name '_spikes.mat']);
+    processed_file_2 = fullfile(pathstr, ['times_' name ext]);
+    processed_file_3 = fullfile(pathstr, ['data_' name '.dg_01']);
+    processed_file_4 = fullfile(pathstr, ['data_' name '.dg_01.lab']);
+    if exist(processed_file_1, 'file') && exist(processed_file_2, 'file') && ...
+            exist(processed_file_3, 'file') && exist(processed_file_4, 'file')
+        result = true;
+    else
+        result = false;
+    end
+end
+
+
+function process_folder_button_callback(hObject, eventdata, handles)
+    % Load a file, then process all files in the same folder sequentially.
+    [filename, pathname] = uigetfile('*.*','Select file in the target folder'); 
+    if isequal(filename,0) || isequal(pathname,0)
+        disp('User canceled folder processing.');
+        return;
+    end
+
+    % Figure out the path and file pattern
+    [~, name, ext] = fileparts(filename);
+    % Pattern: CSC*.mat
+    file_pattern = fullfile(pathname, [name(1:regexp(name,'\d+$','once')-1) '*' ext]);
+    files = dir(file_pattern);
+    % Remove all files with _spikes in the name
+    files = files(~contains({files.name}, '_spikes'));
+    file_names = fullfile(pathname, {files.name});
+    num_files = length(file_names);
+    disp(['Processing ' num2str(num_files) ' files in folder: ' pathname]);
+    for i = 1:num_files
+        current_file = file_names{i};
+        if is_file_processed(current_file)
+            disp("Skipping already processed file: " + current_file);
+            continue;
+        end
+        try
+            % Load file
+            disp(['Processing file ' num2str(i) ' of ' num2str(num_files) ': ' current_file]);
+            load_data_button_Callback(hObject, current_file , handles);
+
+            % Refresh handles from UI state
+            handles = guidata(hObject);
+        
+            % Verify the SPC files are already saved (it could take a while)
+            % [handles.par.fnamespc '.dg_01'], [handles.par.fnamespc '.dg_01.lab']
+            pause(1);
+            file_1_exists = exist([handles.par.fnamespc '.dg_01'],'file');
+            file_2_exists = exist([handles.par.fnamespc '.dg_01.lab'],'file');
+            while ~file_1_exists || ~file_2_exists
+                pause(1);
+                file_1_exists = exist([handles.par.fnamespc '.dg_01'],'file');
+                file_2_exists = exist([handles.par.fnamespc '.dg_01.lab'],'file');
+            end
+    
+            % Save results
+            save_clusters_button_Callback(hObject, eventdata, handles, false, false);
+        catch
+            disp("Error processing file: " + current_file);
+        end
+        
+    end
+end
+
+
 function always_checkbox_Callback(hObject, eventdata, handles)
     plot_spikes(handles);
 end
